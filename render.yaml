@@ -27,12 +27,13 @@ services:
       - key: OPENAI_API_KEY
         sync: false
 
+  # With rootDir: frontend, staticPublishPath is relative to that folder (not repo root).
   - type: web
     name: smartdoc-web
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    staticPublishPath: ./frontend/dist
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
         value: https://smartdoc-api.onrender.com/api
