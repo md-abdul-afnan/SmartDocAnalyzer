@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dotenv import load_dotenv
-from transformers import pipeline
+
 try:
     from deep_translator import GoogleTranslator, MyMemoryTranslator
 except Exception:  # pragma: no cover - optional fallback dependency
@@ -45,13 +45,21 @@ class AIService:
         ).strip()
         self.openai_client = OpenAI(api_key=self.openai_key) if self.openai_key and OpenAI else None
         self._hf_summarizer = None
+        # Render / small VMs: BART + PyTorch often OOM or time out — use extractive fallback.
+        _flag = (os.getenv("DISABLE_HF_SUMMARIZER") or "").strip().lower()
+        self._hf_summarizer_disabled = _flag in ("1", "true", "yes", "on")
 
     def _get_hf_summarizer(self):
+        if self._hf_summarizer_disabled:
+            self._hf_summarizer = False
+            return self._hf_summarizer
         if self._hf_summarizer is None:
-            # transformers task names vary by version; if no summary-compatible
-            # pipeline is available, use deterministic extractive fallback.
             try:
-                self._hf_summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+                from transformers import pipeline
+
+                self._hf_summarizer = pipeline(
+                    "summarization", model="facebook/bart-large-cnn"
+                )
             except Exception:
                 self._hf_summarizer = False
         return self._hf_summarizer

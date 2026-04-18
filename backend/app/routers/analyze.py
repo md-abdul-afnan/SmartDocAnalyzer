@@ -25,6 +25,8 @@ async def get_ocr_languages():
     Return installed Tesseract OCR language codes.
     """
     languages = sorted(get_available_ocr_languages())
+    if not languages:
+        languages = ["eng"]
     return {"languages": languages}
 
 
@@ -109,6 +111,8 @@ async def upload_and_analyze(file: UploadFile = File(...), language: str = "eng"
         )
     except HTTPException:
         raise
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {exc}") from exc
     finally:

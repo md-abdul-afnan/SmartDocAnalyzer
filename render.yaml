@@ -24,6 +24,9 @@ services:
     envVars:
       - key: CORS_ORIGINS
         value: https://smartdoc-web.onrender.com
+      # Hugging Face BART + PyTorch usually OOM or timeout on free tier — fast extractive summaries instead.
+      - key: DISABLE_HF_SUMMARIZER
+        value: "true"
       - key: OPENAI_API_KEY
         sync: false
 

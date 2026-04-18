@@ -112,6 +112,7 @@ function App() {
   const [translating, setTranslating] = useState(false);
   const [history, setHistory] = useState(() => readHistoryFromStorage());
   const [currentHistoryId, setCurrentHistoryId] = useState(null);
+  const [backendNotice, setBackendNotice] = useState("");
 
   useEffect(() => {
     const loadLanguages = async () => {
@@ -119,14 +120,20 @@ function App() {
         const response = await fetch(`${API_BASE_URL}/languages`);
         const data = await response.json();
         if (!response.ok || !Array.isArray(data.languages) || data.languages.length === 0) {
+          setBackendNotice(
+            "Could not load OCR languages from the server. Check that the API is running and CORS allows this site."
+          );
           return;
         }
+        setBackendNotice("");
         setAvailableLanguages(data.languages);
         if (!data.languages.includes(language)) {
           setLanguage(data.languages.includes("eng") ? "eng" : data.languages[0]);
         }
       } catch {
-        // Keep default fallback language when API lookup fails.
+        setBackendNotice(
+          `Cannot reach the API at ${API_BASE_URL}. On Render, open the API service once to wake it (free tier cold start can take ~1 minute), then refresh this page.`
+        );
       }
     };
 
@@ -324,10 +331,15 @@ function App() {
           Upload PDFs, images, or plain text files (.txt, .md) to extract text and get AI insights.
         </p>
         <p className="mt-2 text-sm text-slate-500">
-          Works without an OpenAI key: summaries use a local Hugging Face model (or a simple
-          on-device fallback), and translation uses free online services. Set OPENAI_API_KEY in the
-          backend .env for stronger summaries, image description, and optional vision OCR.
+          Without an OpenAI key, summaries use either a local Hugging Face model (when enabled) or
+          a fast extractive summary, and translation uses free online services. Add OPENAI_API_KEY on
+          the server for stronger summaries, image description, and optional vision OCR.
         </p>
+        {backendNotice ? (
+          <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            {backendNotice}
+          </p>
+        ) : null}
 
         <motion.label
           // Hover scale effect on upload box.
