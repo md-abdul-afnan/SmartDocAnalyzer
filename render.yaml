@@ -1,0 +1,38 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy: Dashboard → New → Blueprint → connect this repo.
+#
+# URLs are https://<service-name>.onrender.com — if you change the `name` fields
+# below, update CORS_ORIGINS and VITE_API_BASE_URL to match.
+#
+# 1) Deploy the API first (or deploy both; the static site build needs the API URL).
+# 2) Optional: set OPENAI_API_KEY in the API service when prompted (sync: false).
+#
+# Notes:
+# - First API build can take 15+ minutes (PyTorch, transformers). Use a paid plan if builds time out.
+# - Free web services spin down after idle; first request may be slow (cold start).
+
+services:
+  - type: web
+    name: smartdoc-api
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://smartdoc-web.onrender.com
+      - key: OPENAI_API_KEY
+        sync: false
+
+  - type: web
+    name: smartdoc-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://smartdoc-api.onrender.com/api

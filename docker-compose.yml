@@ -1,0 +1,46 @@
+# Smart Document Analyzer — local / VPS deployment
+#
+# Run from repo root:
+#   docker compose up --build
+# Open http://localhost:8080  (override with FRONTEND_PORT=80 docker compose up)
+# API is proxied at /api on the same origin (backend is not exposed by default).
+#
+# Optional env: OPENAI_API_KEY, FRONTEND_PORT, VITE_API_BASE_URL (default /api).
+# For backend .env secrets: add env_file: [ ./backend/.env ] under backend.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_VISION_MODEL: ${OPENAI_VISION_MODEL:-gpt-4o-mini}
+    # Optional: load secrets from file
+    # env_file:
+    #   - ./backend/.env
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/').read()",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    ports:
+      # Use 8080 on the host to avoid binding privileged port 80 on Windows/macOS.
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy

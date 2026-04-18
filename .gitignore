@@ -1,0 +1,30 @@
+# Secrets
+backend/.env
+*.env.local
+
+# Python
+backend/.venv/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.pytest_cache/
+.mypy_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs / misc
+*.log
+npm-debug.log*

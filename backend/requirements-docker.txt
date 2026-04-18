@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+PyMuPDF
+pytesseract
+Pillow
+transformers
+openai
+deep-translator
